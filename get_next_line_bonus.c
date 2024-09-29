@@ -132,7 +132,7 @@ int	main(int argc, char **argv)
 	}
 }
 */
-
+/*
 #include <stdio.h>
 #include <fcntl.h>
 
@@ -160,4 +160,4 @@ int	main()
 		free(str2);
 	}
 }
-
+*/
