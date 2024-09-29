@@ -21,24 +21,19 @@ char	*get_next_line(int fd)
 	static t_static	store[MAX_FILES_OPEN];
 
 	if (store[0].init_if == 0)
-	{
 		initialize_static(store);
-	}
 	s = &store[fd];
 	line = NULL;
 	if (s->pos0 == -1)
 	{
 		s->buffer = (char *)malloc(BUFFER_SIZE + 1);
+		if (!(s->buffer))
+			return (NULL);
 		s->bytes_loaded = load_buffer(fd, s, &line);
 		if (s->bytes_loaded <= 0)
 			return (NULL);
 	}
 	line = calc_line(s, fd, line);
-	if (s->bytes_loaded <= 0 && !(s->buffer))
-	{
-		free(s->buffer);
-		s->buffer = NULL;
-	}
 	return (line);
 }
 
@@ -62,17 +57,18 @@ char	*calc_line(t_static *s, int fd, char *line)
 	{
 		line = strjoin_free(line, &s->buffer[s->pos0], 1);
 		s->bytes_loaded = load_buffer(fd, s, &line);
-		if ((s->bytes_loaded == -1) || \
-			((s->bytes_loaded == 0) && (ft_strlen(line) == 0)))
+		if ((s->bytes_loaded == -1) || ((s->bytes_loaded == 0) && !line))
 			return (NULL);
 		else if (s->bytes_loaded == 0)
 			break ;
 		s->pos1 = find_pos(s->buffer, '\n', s->pos0);
 	}
-	if (s->bytes_loaded > 0)
-		line = strjoin_free(line, \
-			ft_substr(s->buffer, s->pos0, s->pos1 - s->pos0 + 1), 3);
-	s->pos0 = s->pos1 + 1;
+	line = strjoin_free(line, \
+		ft_substr(s->buffer, s->pos0, s->pos1 - s->pos0 + 1), 3);
+	if (s->bytes_loaded == 0)
+		s->pos0 = -1;
+	else
+		s->pos0 = s->pos1 + 1;
 	return (line);
 }
 
@@ -93,23 +89,50 @@ ssize_t	find_pos(char *str, char c, ssize_t pos)
 
 ssize_t	load_buffer(int fd, t_static *s, char **line)
 {
-	ssize_t	bytes_loaded;
-
-	bytes_loaded = read(fd, s->buffer, BUFFER_SIZE);
-	if ((bytes_loaded == -1) || \
-		((bytes_loaded == 0) && (ft_strlen(*line) == 0)))
+	s->bytes_loaded = read(fd, s->buffer, BUFFER_SIZE);
+	if (s->bytes_loaded <= 0)
 	{
-		free(*line);
-		*line = NULL;
-		return (bytes_loaded);
+		free(s->buffer);
+		if (ft_strlen(*line) == 0 || s->bytes_loaded == -1)
+		{
+			free(*line);
+			*line = NULL;
+		}
 	}
-	else if (bytes_loaded == 0)
-		return (bytes_loaded);
-	(s->buffer)[bytes_loaded] = '\0';
-	s->pos0 = 0;
-	return (bytes_loaded);
+	else
+	{
+		(s->buffer)[s->bytes_loaded] = '\0';
+		s->pos0 = 0;
+	}
+	return (s->bytes_loaded);
 }
 /*
+#include <stdio.h>
+#include <fcntl.h>
+
+int	main(int argc, char **argv)
+{
+	int	fd;
+	char	*str;
+	int	flag;
+
+	if (argc != 2)
+		return (1);
+	flag = 1;
+	fd = open(argv[1], O_RDONLY);
+	while (flag)
+	{
+		str = get_next_line(fd);
+		if (!str)
+		{
+			flag = 0;
+		}
+		printf("%s", str);
+		free(str);
+	}
+}
+*/
+
 #include <stdio.h>
 #include <fcntl.h>
 
@@ -137,4 +160,4 @@ int	main()
 		free(str2);
 	}
 }
-*/
+

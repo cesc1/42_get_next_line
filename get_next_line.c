@@ -6,7 +6,7 @@
 /*   By: faguirre <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/25 15:06:07 by faguirre          #+#    #+#             */
-/*   Updated: 2024/09/28 13:12:17 by faguirre         ###   ########.fr       */
+/*   Updated: 2024/09/29 17:29:12 by faguirre         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,17 +37,18 @@ char	*calc_line(t_static *s, int fd, char *line)
 	{
 		line = strjoin_free(line, &s->buffer[s->pos0], 1);
 		s->bytes_loaded = load_buffer(fd, s, &line);
-		if ((s->bytes_loaded == -1) || \
-			((s->bytes_loaded == 0) && (ft_strlen(line) == 0)))
+		if ((s->bytes_loaded == -1) || ((s->bytes_loaded == 0) && !line))
 			return (NULL);
 		else if (s->bytes_loaded == 0)
 			break ;
 		s->pos1 = find_pos(s->buffer, '\n', s->pos0);
 	}
-	if (s->bytes_loaded > 0)
-		line = strjoin_free(line, \
+	line = strjoin_free(line, \
 			ft_substr(s->buffer, s->pos0, s->pos1 - s->pos0 + 1), 3);
-	s->pos0 = s->pos1 + 1;
+	if (s->bytes_loaded == 0)
+		s->pos0 = -1;
+	else
+		s->pos0 = s->pos1 + 1;
 	return (line);
 }
 
@@ -84,26 +85,26 @@ ssize_t	load_buffer(int fd, t_static *s, char **line)
 	s->pos0 = 0;
 	return (bytes_loaded);
 }
-
 /*
 #include <stdio.h>
 #include <fcntl.h>
 
-int	main()
+int	main(int argc, char **argv)
 {
 	int	fd;
 	char	*str;
 	int	flag;
 
+	if (argc != 2)
+		return (1);
 	flag = 1;
-	fd = open("a.out", O_RDONLY);
+	fd = open(argv[1], O_RDONLY);
 	while (flag)
 	{
 		str = get_next_line(fd);
 		if (!str)
 		{
 			flag = 0;
-			break ;
 		}
 		printf("%s", str);
 		free(str);
