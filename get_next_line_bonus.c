@@ -6,7 +6,7 @@
 /*   By: faguirre <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/25 15:06:07 by faguirre          #+#    #+#             */
-/*   Updated: 2024/09/29 10:49:01 by faguirre         ###   ########.fr       */
+/*   Updated: 2024/09/30 13:12:24 by faguirre         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,8 @@ char	*get_next_line(int fd)
 		if (s->bytes_loaded <= 0)
 			return (NULL);
 	}
-	line = calc_line(s, fd, line);
+	if (s->buffer)
+		line = calc_line(s, fd, line);
 	return (line);
 }
 
@@ -93,6 +94,7 @@ ssize_t	load_buffer(int fd, t_static *s, char **line)
 	if (s->bytes_loaded <= 0)
 	{
 		free(s->buffer);
+		s->buffer = NULL;
 		if (ft_strlen(*line) == 0 || s->bytes_loaded == -1)
 		{
 			free(*line);
@@ -144,7 +146,7 @@ int	main()
 	int	flag;
 
 	flag = 1;
-	fd[0] = open("test1.txt", O_RDONLY);
+	fd[0] = open("test3.txt", O_RDONLY);
 	fd[1] = open("test2.txt", O_RDONLY);
 	while (flag)
 	{
@@ -154,10 +156,14 @@ int	main()
 		{
 			flag = 0;
 		}
-		printf("%s", str1);
-		printf("%s", str2);
-		free(str1);
-		free(str2);
+		if (str1)
+			printf("%s", str1);
+		if (str2)
+			printf("%s", str2);
+		if (str1)
+			free(str1);
+		if (str2)
+			free(str2);
 	}
 }
 */
