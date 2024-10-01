@@ -13,7 +13,6 @@
 #include "get_next_line_bonus.h"
 #include <stdlib.h>
 
-
 static void	free_strs(char *str1, char *str2, unsigned int num_free)
 {
 	if (num_free == 1 || num_free >= 3)

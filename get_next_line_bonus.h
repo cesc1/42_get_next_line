@@ -10,19 +10,22 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef MAX_FILES_OPEN
-# define MAX_FILES_OPEN 1024
-#endif
-
-#ifndef BUFFER_SIZE
-# define BUFFER_SIZE 100
-#endif
-
 #ifndef GET_NEXT_LINE_BONUS_H
 # define GET_NEXT_LINE_BONUS_H
 
+// Extra defines
+# ifndef MAX_FILES_OPEN
+#  define MAX_FILES_OPEN 1024
+# endif
+
+# ifndef BUFFER_SIZE
+#  define BUFFER_SIZE 100
+# endif
+
+// Includes
 # include <sys/types.h>
 
+// Static structure
 typedef struct s_static
 {
 	ssize_t	pos0;
