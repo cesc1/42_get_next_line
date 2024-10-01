@@ -13,19 +13,15 @@
 #include "get_next_line.h"
 #include <stdlib.h>
 
-size_t	ft_strlen(const char *str)
+static void	free_strs(char *str1, char *str2, unsigned int num_free)
 {
-	size_t	i;
-
-	if (!str)
-		return (0);
-	i = 0;
-	while (str[i])
-		i++;
-	return (i);
+	if (num_free == 1 || num_free >= 3)
+		free(str1);
+	if (num_free == 2 || num_free >= 3)
+		free(str2);
 }
 
-size_t	ft_strlcpy(char *dst, const char *src, size_t size)
+static size_t	ft_strlcpy(char *dst, const char *src, size_t size)
 {
 	size_t	i;
 	size_t	res_n;
@@ -45,12 +41,16 @@ size_t	ft_strlcpy(char *dst, const char *src, size_t size)
 	return (res_n);
 }
 
-static void	free_strs(char *str1, char *str2, unsigned int num_free)
+size_t	ft_strlen(const char *str)
 {
-	if (num_free == 1 || num_free >= 3)
-		free(str1);
-	if (num_free == 2 || num_free >= 3)
-		free(str2);
+	size_t	i;
+
+	if (!str)
+		return (0);
+	i = 0;
+	while (str[i])
+		i++;
+	return (i);
 }
 
 char	*strjoin_free(char *str1, char *str2, unsigned int num_free)

@@ -27,13 +27,12 @@ typedef struct s_static
 	char	buffer[BUFFER_SIZE + 1];
 }	t_static;
 
+// Main function
 char	*get_next_line(int fd);
+
+// Helper functions
 char	*strjoin_free(char *str1, char *str2, unsigned int num_free);
 char	*ft_substr(char const *s, unsigned int start, size_t len);
-ssize_t	find_pos(char *str, char c, ssize_t pos);
-ssize_t	load_buffer(int fd, t_static *s, char **line);
 size_t	ft_strlen(const char *str);
-size_t	ft_strlcpy(char *dst, const char *src, size_t size);
-char	*calc_line(t_static *s, int fd, char *line);
 
 #endif

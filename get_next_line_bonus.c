@@ -14,6 +14,77 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+static ssize_t	find_pos(char *str, char c, ssize_t pos)
+{
+	if (pos == -1)
+		pos++;
+	while (str[pos])
+	{
+		if (str[pos] == c)
+		{
+			return (pos);
+		}
+		pos++;
+	}
+	return (-1);
+}
+
+static ssize_t	load_buffer(int fd, t_static *s, char **line)
+{
+	s->bytes_loaded = read(fd, s->buffer, BUFFER_SIZE);
+	if (s->bytes_loaded <= 0)
+	{
+		free(s->buffer);
+		s->buffer = NULL;
+		if (ft_strlen(*line) == 0 || s->bytes_loaded == -1)
+		{
+			free(*line);
+			*line = NULL;
+		}
+	}
+	else
+	{
+		(s->buffer)[s->bytes_loaded] = '\0';
+		s->pos0 = 0;
+	}
+	return (s->bytes_loaded);
+}
+
+static char	*calc_line(t_static *s, int fd, char *line)
+{
+	s->pos1 = find_pos(s->buffer, '\n', s->pos0);
+	while (s->pos1 == -1)
+	{
+		line = strjoin_free(line, &s->buffer[s->pos0], 1);
+		s->bytes_loaded = load_buffer(fd, s, &line);
+		if ((s->bytes_loaded == -1) || ((s->bytes_loaded == 0) && !line))
+			return (NULL);
+		else if (s->bytes_loaded == 0)
+			break ;
+		s->pos1 = find_pos(s->buffer, '\n', s->pos0);
+	}
+	line = strjoin_free(line, \
+		ft_substr(s->buffer, s->pos0, s->pos1 - s->pos0 + 1), 3);
+	if (s->bytes_loaded == 0)
+		s->pos0 = -1;
+	else
+		s->pos0 = s->pos1 + 1;
+	return (line);
+}
+
+static void	initialize_static(t_static store[MAX_FILES_OPEN])
+{
+	unsigned int	i;
+
+	store[0].init_if = 1;
+	i = 0;
+	while (i < MAX_FILES_OPEN)
+	{
+		store[i].pos0 = -1;
+		i++;
+	}
+}
+
 char	*get_next_line(int fd)
 {
 	char			*line;
@@ -36,77 +107,6 @@ char	*get_next_line(int fd)
 	if (s->buffer)
 		line = calc_line(s, fd, line);
 	return (line);
-}
-
-void	initialize_static(t_static store[MAX_FILES_OPEN])
-{
-	size_t	i;
-
-	store[0].init_if = 1;
-	i = 0;
-	while (i < MAX_FILES_OPEN)
-	{
-		store[i].pos0 = -1;
-		i++;
-	}
-}
-
-char	*calc_line(t_static *s, int fd, char *line)
-{
-	s->pos1 = find_pos(s->buffer, '\n', s->pos0);
-	while (s->pos1 == -1)
-	{
-		line = strjoin_free(line, &s->buffer[s->pos0], 1);
-		s->bytes_loaded = load_buffer(fd, s, &line);
-		if ((s->bytes_loaded == -1) || ((s->bytes_loaded == 0) && !line))
-			return (NULL);
-		else if (s->bytes_loaded == 0)
-			break ;
-		s->pos1 = find_pos(s->buffer, '\n', s->pos0);
-	}
-	line = strjoin_free(line, \
-		ft_substr(s->buffer, s->pos0, s->pos1 - s->pos0 + 1), 3);
-	if (s->bytes_loaded == 0)
-		s->pos0 = -1;
-	else
-		s->pos0 = s->pos1 + 1;
-	return (line);
-}
-
-ssize_t	find_pos(char *str, char c, ssize_t pos)
-{
-	if (pos == -1)
-		pos++;
-	while (str[pos])
-	{
-		if (str[pos] == c)
-		{
-			return (pos);
-		}
-		pos++;
-	}
-	return (-1);
-}
-
-ssize_t	load_buffer(int fd, t_static *s, char **line)
-{
-	s->bytes_loaded = read(fd, s->buffer, BUFFER_SIZE);
-	if (s->bytes_loaded <= 0)
-	{
-		free(s->buffer);
-		s->buffer = NULL;
-		if (ft_strlen(*line) == 0 || s->bytes_loaded == -1)
-		{
-			free(*line);
-			*line = NULL;
-		}
-	}
-	else
-	{
-		(s->buffer)[s->bytes_loaded] = '\0';
-		s->pos0 = 0;
-	}
-	return (s->bytes_loaded);
 }
 /*
 #include <stdio.h>
@@ -146,7 +146,7 @@ int	main()
 	int	flag;
 
 	flag = 1;
-	fd[0] = open("test3.txt", O_RDONLY);
+	fd[0] = open("test1.txt", O_RDONLY);
 	fd[1] = open("test2.txt", O_RDONLY);
 	while (flag)
 	{

@@ -14,23 +14,41 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-char	*get_next_line(int fd)
+static ssize_t	find_pos(char *str, char c, ssize_t pos)
 {
-	char			*line;
-	static t_static	s = {-1, -1, -1, ""};
-
-	line = NULL;
-	if (s.pos0 == -1)
+	if (pos == -1)
+		pos++;
+	while (str[pos])
 	{
-		s.bytes_loaded = load_buffer(fd, &s, &line);
-		if (s.bytes_loaded <= 0)
-			return (NULL);
+		if (str[pos] == c)
+		{
+			return (pos);
+		}
+		pos++;
 	}
-	line = calc_line(&s, fd, line);
-	return (line);
+	return (-1);
 }
 
-char	*calc_line(t_static *s, int fd, char *line)
+static ssize_t	load_buffer(int fd, t_static *s, char **line)
+{
+	ssize_t	bytes_loaded;
+
+	bytes_loaded = read(fd, s->buffer, BUFFER_SIZE);
+	if ((bytes_loaded == -1) || \
+		((bytes_loaded == 0) && (ft_strlen(*line) == 0)))
+	{
+		free(*line);
+		*line = NULL;
+		return (bytes_loaded);
+	}
+	else if (bytes_loaded == 0)
+		return (bytes_loaded);
+	(s->buffer)[bytes_loaded] = '\0';
+	s->pos0 = 0;
+	return (bytes_loaded);
+}
+
+static char	*calc_line(t_static *s, int fd, char *line)
 {
 	s->pos1 = find_pos(s->buffer, '\n', s->pos0);
 	while (s->pos1 == -1)
@@ -52,38 +70,20 @@ char	*calc_line(t_static *s, int fd, char *line)
 	return (line);
 }
 
-ssize_t	find_pos(char *str, char c, ssize_t pos)
+char	*get_next_line(int fd)
 {
-	if (pos == -1)
-		pos++;
-	while (str[pos])
-	{
-		if (str[pos] == c)
-		{
-			return (pos);
-		}
-		pos++;
-	}
-	return (-1);
-}
+	char			*line;
+	static t_static	s = {-1, -1, -1, ""};
 
-ssize_t	load_buffer(int fd, t_static *s, char **line)
-{
-	ssize_t	bytes_loaded;
-
-	bytes_loaded = read(fd, s->buffer, BUFFER_SIZE);
-	if ((bytes_loaded == -1) || \
-		((bytes_loaded == 0) && (ft_strlen(*line) == 0)))
+	line = NULL;
+	if (s.pos0 == -1)
 	{
-		free(*line);
-		*line = NULL;
-		return (bytes_loaded);
+		s.bytes_loaded = load_buffer(fd, &s, &line);
+		if (s.bytes_loaded <= 0)
+			return (NULL);
 	}
-	else if (bytes_loaded == 0)
-		return (bytes_loaded);
-	(s->buffer)[bytes_loaded] = '\0';
-	s->pos0 = 0;
-	return (bytes_loaded);
+	line = calc_line(&s, fd, line);
+	return (line);
 }
 /*
 #include <stdio.h>
